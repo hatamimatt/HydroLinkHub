@@ -239,21 +239,11 @@
             </div>
             <div class="archive">
                 <h3>Previous issues</h3>
-                <!-- Add your last 5 posts here (title + date). If using Substack, link to the post URLs. -->
-                <ul>
+                <!-- Newsletter posts will be automatically loaded from Substack RSS -->
+                <ul id="newsletter-list">
                     <li>
-                        <a href="#" target="_blank" rel="noopener">Issue #3 — Reading flood depth from SAR +
-                            cameras</a><br />
-                        <time datetime="2025-10-24">24 Oct 2025</time>
-                    </li>
-                    <li>
-                        <a href="#" target="_blank" rel="noopener">Issue #2 — 12 PhD/Postdoc calls in hydro &
-                            risk</a><br />
-                        <time datetime="2025-10-17">17 Oct 2025</time>
-                    </li>
-                    <li>
-                        <a href="#" target="_blank" rel="noopener">Issue #1 — Launch & why HydroLink Hub</a><br />
-                        <time datetime="2025-10-10">10 Oct 2025</time>
+                        <a href="https://hydrolinkhub.substack.com/p/compound-risk-and-extreme-events-b8c" target="_blank" rel="noopener">Loading...</a><br />
+                        <time datetime="">Loading...</time>
                     </li>
                 </ul>
                 <p style="margin-top:12px"><a href="https://HydroLinkHub.substack.com/archive" target="_blank"
@@ -266,6 +256,73 @@
                     href="mailto:hello@hydrolinkhub.com">hello@hydrolinkhub.com</a></p>
         </footer>
     </div>
+
+    <script>
+        // Fetch newsletter posts from Substack RSS feed
+        async function loadNewsletters() {
+            const newsletterList = document.getElementById('newsletter-list');
+            
+            try {
+                // Substack RSS feed URL
+                const rssUrl = 'https://hydrolinkhub.substack.com/feed';
+                
+                // Use a CORS proxy to fetch the RSS feed (since RSS feeds don't allow CORS)
+                // You can use a free service like cors-anywhere or allorigins
+                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
+                const data = await response.json();
+                
+                // Parse the RSS XML
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(data.contents, 'text/xml');
+                
+                // Get all items (newsletters)
+                const items = xmlDoc.querySelectorAll('item');
+                
+                // Clear the loading message
+                newsletterList.innerHTML = '';
+                
+                // Display the 5 most recent newsletters
+                const maxPosts = 5;
+                items.forEach((item, index) => {
+                    if (index < maxPosts) {
+                        const title = item.querySelector('title').textContent;
+                        const link = item.querySelector('link').textContent;
+                        const pubDate = item.querySelector('pubDate').textContent;
+                        
+                        // Format the date
+                        const date = new Date(pubDate);
+                        const formattedDate = date.toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                        });
+                        
+                        // Create list item
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <a href="${link}" target="_blank" rel="noopener">${title}</a><br />
+                            <time datetime="${date.toISOString()}">${formattedDate}</time>
+                        `;
+                        
+                        newsletterList.appendChild(li);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading newsletters:', error);
+                // Fallback to showing error message
+                newsletterList.innerHTML = `
+                    <li>
+                        <a href="https://hydrolinkhub.substack.com" target="_blank" rel="noopener">Unable to load recent newsletters</a><br />
+                        <time datetime="">Visit Substack to see all posts</time>
+                    </li>
+                `;
+            }
+        }
+        
+        // Load newsletters when page loads
+        window.addEventListener('DOMContentLoaded', loadNewsletters);
+    </script>
 </body>
 
 </html>
